@@ -2,6 +2,10 @@
 #include "hal.h"
 #include <chprintf.h>
 #include <usbcfg.h>
+//#include <inttypes.h>
+//#include "VL53L0X.h"
+//#include "vl53l0x_api_calibration.h"
+#include "sensors/VL53L0X/VL53L0X.h"
 
 #include <main.h>
 #include <camera/po8030.h>
@@ -12,8 +16,10 @@
 static float distance_cm = 0;
 static uint16_t line_position = IMAGE_BUFFER_SIZE/2;	//middle
 
+
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+static VL53L0X_DEV dev_chosen ;
 
 /*
  *  Returns the line's width extracted from the image buffer given
@@ -176,3 +182,68 @@ void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
+
+
+/*
+ --- ET SI ON ESSAYAIT LES THREADS ? ---
+static THD_WORKING_AREA(waCaptureImage, 256);
+static THD_FUNCTION(TOF, arg) {
+
+    chRegSetThreadName(__FUNCTION__);
+    (void)arg;
+
+    //chprintf((BaseSequentialStream *)&SDU1, " entrée dans TOF");
+    	uint8_t variable_ret ;
+    	variable_ret = VL53L0X_init(dev_chosen); // Init the VL53L0X_Dev_t structure and the sensor.
+    	uint16_t measured_distance ;
+    	//variable_ret = VL53L0X_configAccuracy(dev_chosen, VL53L0X_DEFAULT_MODE); // Configure the accuracy of the sensor (range).
+    	//variable_ret = VL53L0X_startMeasure(dev_chosen, VL53L0X_DEVICEMODE_SINGLE_RANGING); // Begin the meausurement process with the specified mode
+    	//variable_ret = VL53L0X_getLastMeasure(dev_chosen); //  Get the last valid measure and lpace it in the sensor structure given.
+    	//VL53L0X_start(); // Init a thread which uses the distance sensor to continuoulsy measure the distance.
+    	//VL53L0X_stop(); // Stop the distance measurement
+    	//measured_distance = VL53L0X_get_dist_mm(); // Last distance measured in mm
+    	//chprintf((BaseSequentialStream *)&SDU1, "la distance mesurée est :", measured_distance);
+
+
+}
+*/
+
+/*
+ * définitions des types : (définis dans vl53l0_def.h)
+ *
+ * VL53L0X_Error :  unsigned int 8 bits
+ * typedef uint8_t VL53L0X_AccuracyMode ; // 1.2m, 30ms
+#define VL53L0X_DEFAULT_MODE    ((VL53L0X_AccuracyMode) 0) // 1.2m, 200ms
+#define VL53L0X_HIGH_ACCURACY   ((VL53L0X_AccuracyMode) 1) // 2m, 33ms
+#define VL53L0X_LONG_RANGE      ((VL53L0X_AccuracyMode) 2) // 1.2m, 20ms
+#define VL53L0X_HIGH_SPEED      ((VL53L0X_AccuracyMode) 3)
+ *
+ * typedef uint8_t VL53L0X_DeviceModes;
+
+#define VL53L0X_DEVICEMODE_SINGLE_RANGING	((VL53L0X_DeviceModes)  0)
+#define VL53L0X_DEVICEMODE_CONTINUOUS_RANGING	((VL53L0X_DeviceModes)  1)
+#define VL53L0X_DEVICEMODE_SINGLE_HISTOGRAM	((VL53L0X_DeviceModes)  2)
+#define VL53L0X_DEVICEMODE_CONTINUOUS_TIMED_RANGING ((VL53L0X_DeviceModes) 3)
+#define VL53L0X_DEVICEMODE_SINGLE_ALS		((VL53L0X_DeviceModes) 10)
+#define VL53L0X_DEVICEMODE_GPIO_DRIVE		((VL53L0X_DeviceModes) 20)
+#define VL53L0X_DEVICEMODE_GPIO_OSC		((VL53L0X_DeviceModes) 21)
+*/
+
+void test_TOF(void)
+{
+	VL53L0X_start(); // // Init a thread which uses the distance sensor to continuoulsy measure the distance.
+	//chprintf((BaseSequentialStream *)&SDU1, " entrée dans TOF");
+	//uint8_t variable_ret ;
+	//variable_ret = VL53L0X_init(dev_chosen); // Init the VL53L0X_Dev_t structure and the sensor.
+	uint16_t measured_distance ;
+	chThdSleepMilliseconds(1000);
+	measured_distance = VL53L0X_get_dist_mm(); // Last distance measured in mm
+	chprintf((BaseSequentialStream * ) & SDU1, "mesure = %d \n" , measured_distance);
+
+	//variable_ret = VL53L0X_configAccuracy(dev_chosen, VL53L0X_DEFAULT_MODE); // Configure the accuracy of the sensor (range).
+	//variable_ret = VL53L0X_startMeasure(dev_chosen, VL53L0X_DEVICEMODE_SINGLE_RANGING); // Begin the meausurement process with the specified mode
+	//variable_ret = VL53L0X_getLastMeasure(dev_chosen); //  Get the last valid measure and lpace it in the sensor structure given.
+
+	//VL53L0X_stop(); // Stop the distance measurement
+}
+

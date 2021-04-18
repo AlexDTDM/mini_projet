@@ -3,17 +3,48 @@
 #include <string.h>
 #include <math.h>
 
+#include <pi_regulator.h>
+#include <process_image.h>
+
+
+#include "aseba_vm/aseba_node.h"
+#include "aseba_vm/skel_user.h"
+#include "aseba_vm/aseba_can_interface.h"
+#include "aseba_vm/aseba_bridge.h"
+#include "audio/audio_thread.h"
+#include "audio/play_melody.h"
+#include "audio/play_sound_file.h"
+#include "audio/microphone.h"
+#include "camera/po8030.h"
+#include "epuck1x/Asercom.h"
+#include "epuck1x/Asercom2.h"
+#include "epuck1x/a_d/advance_ad_scan/e_acc.h"
+#include "sensors/battery_level.h"
+#include "sensors/imu.h"
+#include "sensors/mpu9250.h"
+#include "sensors/proximity.h"
+#include "sensors/VL53L0X/VL53L0X.h"
+#include "cmd.h"
+#include "config_flash_storage.h"
+#include "exti.h"
+#include "i2c_bus.h"
+#include "ir_remote.h"
+#include "leds.h"
+#include "sdio.h"
+#include "selector.h"
+#include "spi_comm.h"
+#include "usbcfg.h"
+#include "communication.h"
+#include "uc_usage.h"
 #include "ch.h"
 #include "hal.h"
 #include "memory_protection.h"
 #include <usbcfg.h>
 #include <main.h>
 #include <motors.h>
-#include <camera/po8030.h>
 #include <chprintf.h>
 
-#include <pi_regulator.h>
-#include <process_image.h>
+
 
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
@@ -36,7 +67,6 @@ static void serial_start(void)
 
 int main(void)
 {
-
     halInit();
     chSysInit();
     mpu_init();
@@ -52,13 +82,17 @@ int main(void)
 	motors_init();
 
 	//stars the threads for the pi regulator and the processing of the image
-	pi_regulator_start();
-	process_image_start();
+	//pi_regulator_start();
+	//process_image_start();
 
     /* Infinite loop. */
     while (1) {
+
     	//waits 1 second
-        chThdSleepMilliseconds(1000);
+        chThdSleepMilliseconds(2000);
+        //chprintf((BaseSequentialStream *)&SDU1, "entree dans le while\n");
+        test_TOF();
+
     }
 }
 

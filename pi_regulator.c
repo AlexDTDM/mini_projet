@@ -69,7 +69,7 @@ static THD_FUNCTION(PiRegulator, arg) {
 		//right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 		//left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 
-        chprintf((BaseSequentialStream *)&SDU1, "TEST\n");
+       // chprintf((BaseSequentialStream *)&SDU1, "TEST\n");
         //turn_around();
         left_motor_set_speed(0);
         right_motor_set_speed(0);
