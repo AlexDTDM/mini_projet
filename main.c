@@ -82,17 +82,14 @@ int main(void)
 	motors_init();
 
 	//stars the threads for the pi regulator and the processing of the image
-	//pi_regulator_start();
+	pi_regulator_start();
 	//process_image_start();
 
     /* Infinite loop. */
     while (1) {
-
     	//waits 1 second
         chThdSleepMilliseconds(2000);
-        //chprintf((BaseSequentialStream *)&SDU1, "entree dans le while\n");
-        test_TOF();
-
+        detection_objet();
     }
 }
 

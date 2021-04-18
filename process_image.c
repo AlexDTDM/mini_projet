@@ -542,21 +542,13 @@ static THD_FUNCTION(TOF, arg) {
 #define VL53L0X_DEVICEMODE_GPIO_OSC		((VL53L0X_DeviceModes) 21)
 */
 
-void test_TOF(void)
+uint16_t test_TOF(void)
 {
 	VL53L0X_start(); // // Init a thread which uses the distance sensor to continuoulsy measure the distance.
-	//chprintf((BaseSequentialStream *)&SDU1, " entrée dans TOF");
-	//uint8_t variable_ret ;
-	//variable_ret = VL53L0X_init(dev_chosen); // Init the VL53L0X_Dev_t structure and the sensor.
 	uint16_t measured_distance ;
 	chThdSleepMilliseconds(1000);
 	measured_distance = VL53L0X_get_dist_mm(); // Last distance measured in mm
-	chprintf((BaseSequentialStream * ) & SDU1, "mesure = %d \n" , measured_distance);
-
-	//variable_ret = VL53L0X_configAccuracy(dev_chosen, VL53L0X_DEFAULT_MODE); // Configure the accuracy of the sensor (range).
-	//variable_ret = VL53L0X_startMeasure(dev_chosen, VL53L0X_DEVICEMODE_SINGLE_RANGING); // Begin the meausurement process with the specified mode
-	//variable_ret = VL53L0X_getLastMeasure(dev_chosen); //  Get the last valid measure and lpace it in the sensor structure given.
-
-	//VL53L0X_stop(); // Stop the distance measurement
+	VL53L0X_stop(); // Stop the distance measurement
+	return measured_distance ;
 }
 

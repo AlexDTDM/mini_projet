@@ -9,6 +9,8 @@
 #include <pi_regulator.h>
 #include <process_image.h>
 
+#define RAYON_ARENE 1500
+
 //simple PI regulator implementation
 int16_t pi_regulator(float distance, float goal){
 
@@ -69,7 +71,7 @@ static THD_FUNCTION(PiRegulator, arg) {
 		//right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 		//left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 
-       // chprintf((BaseSequentialStream *)&SDU1, "TEST\n");
+       //
         //turn_around();
         left_motor_set_speed(0);
         right_motor_set_speed(0);
@@ -83,6 +85,21 @@ void pi_regulator_start(void){
 	chThdCreateStatic(waPiRegulator, sizeof(waPiRegulator), NORMALPRIO, PiRegulator, NULL);
 }
 
-void turn_around(void){
-	;
+
+void detection_objet(void){
+
+	uint16_t distance_objet_detected;
+
+	int compteur_1_tour = 0 ; //fait une portion de tour about 1/5 à la vitess 2000
+    //un tour
+	while(compteur_1_tour< 100000){
+		left_motor_set_speed(2000);
+		compteur_1_tour +=1 ;
+		}
+
+	distance_objet_detected = test_TOF() ;// appel de la fonction qui mesure les distances
+
+	if(distance_objet_detected < RAYON_ARENE)
+		chprintf((BaseSequentialStream *)&SDU1, "il y a un obstacle à %d mm", distance_objet_detected);
+
 }
