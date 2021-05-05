@@ -9,6 +9,11 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
+int status(void);
+
+#define RESEARCH 0
+#define COLOR 1
+#define ACTION 2
 
 //constants for the differents parts of the project
 #define IMAGE_BUFFER_SIZE		640
