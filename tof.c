@@ -17,16 +17,16 @@
 #include <mainthread.h>
 #include <tof.h>
 
-#define RAYON_ARENE 230					// en mm
-#define DIST_MIN_DEPLACEMENT 130 		// en mm
-#define WHEEL_PERIMETER_MM 130			// en mm
+#define RAYON_VILLAGE 230				// in mm
+#define DIST_MIN_DEPLACEMENT 130 		// in mm
+#define WHEEL_PERIMETER_MM 130			// in mm
 #define NSTEP_ONE_TURN 1000				// number of step for 1 turn of the motor
 #define EPSILON 0.001
 #define THRESHOLD 120 					//distance à laquelle le robot s arrete pour checker sa couleur
 #define STOP_MOVING 0
 #define VITESSE_ROTATION 300
 #define VITESSE_CHECK 1000
-#define REINIT 0
+#define INIT 0
 #define MEASURE_TAKEN 3000
 
 
@@ -42,18 +42,17 @@ bool avancer_check(void){
 
 	bool passage_case_suivant = false;
 	uint16_t position_to_reach_insteps; // sur 16 bits
-	int32_t current_pos = REINIT;
+	int16_t current_pos = INIT;
 
 	//init counter steps at 0
-	left_motor_set_pos(REINIT);
-	right_motor_set_pos(REINIT);
-
+	left_motor_set_pos(INIT);
+	right_motor_set_pos(INIT);
 
 	//distance_steps = distance_mm*NSTEP_ONE_TURN/WHEEL_PERIMETER_MM;
 	position_to_reach_insteps = (distance_mm - THRESHOLD)*NSTEP_ONE_TURN/WHEEL_PERIMETER_MM; // conversion distmm -> diststeps
     distance_objet = distance_mm;
 
-	while (current_pos < position_to_reach_insteps) {
+	while(current_pos < position_to_reach_insteps){
 
 		right_motor_set_speed(VITESSE_CHECK);
 	    left_motor_set_speed(VITESSE_CHECK);
@@ -66,7 +65,7 @@ bool avancer_check(void){
 	distance_objet = distance_mm;
 
 	// réinitialisation de la distance mesurée pour les appels suivants de detection_objet
-	distance_mm = REINIT;
+	distance_mm = INIT;
 	return passage_case_suivant;
 }
 
@@ -76,12 +75,12 @@ bool detection_objet(void){
 	bool obstacle_detected = false;
 	distance_mm = MEASURE_TAKEN; //distance jamais atteinte donc condition valable pour entrer dans le while
 
-	while(distance_mm > RAYON_ARENE || distance_mm < DIST_MIN_DEPLACEMENT){
+	while(distance_mm > RAYON_VILLAGE || distance_mm < DIST_MIN_DEPLACEMENT){
 
 		//robot tourne sur lui-même
 		left_motor_set_speed(VITESSE_ROTATION); 
 		right_motor_set_speed(-VITESSE_ROTATION);
-		distance_mm = appel_TOF();// appel de la fonction qui mesure les distances
+		distance_mm = appel_TOF(); // appel de la fonction qui mesure les distances
 	}
 
 	obstacle_detected = true;
