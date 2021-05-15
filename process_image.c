@@ -8,12 +8,15 @@
 #include <motors.h>
 #include <mainthread.h>
 
-#define THRESHOLD 10
+#define THRESHOLD 10 		// in pixels 
 #define INIT 0
 #define COLOR 1
 #define DOUBLE_INCREMENT 2
+#define MASK 0x1F 			// 00011111
+#define SHIFT_MASK 3 		// on décale les bits de 3 crans vers la droite pour get les bits red de RGB565
+#define SLEEP_TIME 1000 	// in ms
+
 bool red_or_blue = true;
-#define MASK 0x1F
 
 
 //semaphore
@@ -27,7 +30,7 @@ bool red_blue(void){
 
 
 static THD_WORKING_AREA(waCaptureImage, 256);
-static THD_FUNCTION(CaptureImage, arg) {
+static THD_FUNCTION(CaptureImage, arg){
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -51,7 +54,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 
 static THD_WORKING_AREA(waProcessImage, 1536);
-static THD_FUNCTION(ProcessImage, arg) {
+static THD_FUNCTION(ProcessImage, arg){
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -59,12 +62,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 	uint8_t *img_buff_ptr;
 	uint8_t image[IMAGE_BUFFER_SIZE] = {INIT};
     uint8_t image_blue[IMAGE_BUFFER_SIZE] = {INIT};
-	uint32_t image_blue_moy = INIT; //uint_16
-	uint32_t image_red_moy = INIT; //uint16
+	uint16_t image_blue_moy = INIT;
+	uint16_t image_red_moy = INIT;
+	int state = INIT;
 
     while(1){
 
-    	state = status(); //Ce state permet de mettre  thread en sleep dans tout les autres cas sauf le case COLOR
+    	state = status(); //Ce state permet de mettre cette thread en sleep dans tous les autres cas sauf le case COLOR
 
     	if(state == COLOR){
 
@@ -76,7 +80,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=DOUBLE_INCREMENT){
 
-				image[i/2] = (((uint8_t)img_buff_ptr[i])>>3)&MASK; //extrait les bits qui correspondent au rouge
+				image[i/2] = (((uint8_t)img_buff_ptr[i])>>SHIFT_MASK)&MASK; //extrait les bits qui correspondent au rouge
 	            image_blue[i/2] = ((uint8_t)img_buff_ptr[i+1])&MASK;  //extrait les bits qui correspondent au bleu
 
 			}
@@ -92,18 +96,18 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			if(image_red_moy > image_blue_moy){
 
-					red_or_blue = true;
-					chThdSleepMilliseconds(1000);  // Ce sleep permet de laisser la la main thread de reprendre la main
+				red_or_blue = true;
+				chThdSleepMilliseconds(SLEEP_TIME);  // Ce sleep permet de laisser la main thread de reprendre la main
 			}
 
 			if(image_blue_moy > image_red_moy){
 
-					red_or_blue = false;
-					chThdSleepMilliseconds(1000);  //Ce sleep permet de laisser la la main thread de reprendre la main
+				red_or_blue = false;
+				chThdSleepMilliseconds(SLEEP_TIME);  //Ce sleep permet de laisser la main thread de reprendre la main
 			}
     	}	
     	else{
-    		chThdSleepMilliseconds(1000);
+    		chThdSleepMilliseconds(SLEEP_TIME);
     	}
 	}
 }
