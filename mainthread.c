@@ -1,75 +1,95 @@
-/*
- * mainthread.c
- *
- *  Created on: 24 avr. 2021
- *      Author: alexandredemontleau
- */
 
 #include "ch.h"
 #include "hal.h"
 #include <chprintf.h>
 #include <usbcfg.h>
-
 #include <main.h>
 #include <camera/po8030.h>
-
 #include <process_image.h>
 #include <motors.h>
 #include <tof.h>
 #include <mainthread.h>
 #include <motormove.h>
+#include <audio/audio_thread.h>
+#include<audio/play_melody.h>
 
-#define RESEARCH 0
-#define COLOR 1
-#define ACTION 2
+enum states{RESEARCH, COLOR, ACTION, SLEEP};
+
+#define NB_MAX_OBSTACLES 4
+#define PARAMETRES_MUSIC 0
+#define STOP_MOVING 0
+#define SIMPLE_INCREMENT 1
+#define INIT 0
 
 int state = RESEARCH;
+static bool stranger;
 
 int status(void){
 	return state;
 }
 
 
-static THD_WORKING_AREA(waMainThread, 1024);
+static THD_WORKING_AREA(waMainThread, 1024); //thread qui gère le fonctionnement général du programme
 static THD_FUNCTION(MainThread, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
-	//bool changement_state = 0 ;
+	stranger = false;
+	uint8_t compteur_obstacles = INIT;
 
-	//uint16_t det = 0;
+	while(1){
+		
+		chThdSleepMilliseconds(1000);
+		
+		switch(state){
 
-	 while(1){
-		 chThdSleepMilliseconds(1000);
-		 switch(state)
-		    	{
-		       case RESEARCH:
-		       detection_objet();
-		       state = COLOR;
-		       chprintf((BaseSequentialStream *)&SDU1, "[STATE = %d]", state);
-		    	break;
+		 	case RESEARCH:
 
-		    	case COLOR: //pas encore de cas si trouve pas la couleur.
-		    	chThdSleepMilliseconds(1000);
-		    	state = ACTION;
-		    	 chprintf((BaseSequentialStream *)&SDU1, "[STATE = %d]", state);
-		    	break;
+		 		stranger = false;
 
-		    	case ACTION:
-		        attack_return();
-		    	state = RESEARCH;
-		    	break;
-		    }
-	 }
+		 		while(stranger == false){
 
+					 stranger = detection_objet();
+		 		}
+
+		 		if(avancer_check()){ // s'approche de l'obstacle
+
+		 			state = COLOR;
+		 		}
+		 		break;
+
+		 	case COLOR: // regarde la couleur de l'obstacle
+
+		 		chThdSleepMilliseconds(1000); //sleep laisse la place à la thread pour checker la couleur
+		 		state = ACTION;
+		 		break;
+
+		 	case ACTION: //agit en fonction de la nature de l'obstacle
+
+		 		attack_return();
+		 		if(compteur_obstacles< NB_MAX_OBSTACLES){ //si on a déjà détecté NB_MAX_OBSTACLES obstacles, on passe au case sleep
+		 			compteur_obstacles +=SIMPLE_INCREMENT;
+		 			state = RESEARCH;
+		 			break;
+
+		 				 		}
+		 		else state = SLEEP; //si on a déjà détecté NB_MAX_OBSTACLES obstacles, on sleep
+		 		break;
+
+
+		 	case SLEEP: //s'arrête de tourner et célèbre 
+
+		 		right_motor_set_speed(STOP_MOVING); //arrête de tourner 
+		 		left_motor_set_speed(STOP_MOVING);
+		 		playMelody(WE_ARE_THE_CHAMPIONS, PARAMETRES_MUSIC, PARAMETRES_MUSIC); //joue de la musique
+		 		waitMelodyHasFinished();
+		 		stopCurrentMelody();
+		 		break;
+		}
+	}
 }
 
 
 void mainthread_start(void){
 	chThdCreateStatic(waMainThread, sizeof(waMainThread), NORMALPRIO, MainThread, NULL);
 }
-
-
-
-
-
